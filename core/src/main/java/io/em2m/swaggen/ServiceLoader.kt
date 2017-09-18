@@ -1,0 +1,107 @@
+package io.em2m.swaggen
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import java.io.File
+
+fun nameFromFile(file: File): String {
+    val name = file.name
+    return name.substring(0, name.lastIndexOf('.'))
+}
+
+class ServiceLoader {
+
+    val mapper = ObjectMapper(YAMLFactory()).registerKotlinModule()
+
+    fun loadSpec(root: File): Specification {
+        val info: Info = loadInfo(File(root, "info.yml"))
+        val spec: Specification = Specification(info)
+
+        spec.services.add(loadService(root))
+        return spec
+    }
+
+    fun loadInfo(root: File): Info {
+        val file = File(root, "info.yml")
+        if (!file.exists()) return Info()
+        return try {
+            mapper.readValue(file)
+        } catch (e: Exception) {
+            println("Error loading info block (${file.name}): ${e.message}")
+            throw e
+        }
+    }
+
+
+    fun loadService(src: File): Service {
+
+        val service = Service(src.name, mutableListOf(), mutableListOf())
+
+        val actions = File(src, "actions")
+        val models = File(src, "models")
+
+        if (actions.isDirectory) {
+            actions.listFiles().forEach {
+                service.actions.add(try {
+                    loadAction(it)
+                } catch (e: Exception) {
+                    println("Error processing action (${it.name}): ${e.message}")
+                    throw e
+                })
+            }
+        }
+
+        if (models.isDirectory) {
+            models.listFiles().forEach {
+                file ->
+                val model = try {
+                    loadModel(file)
+                } catch(e: Exception) {
+                    println("Error loading model (${file.name}): ${e.message}")
+                    throw e
+                }
+                service.models.add(model)
+            }
+        }
+        return service
+    }
+
+    fun loadAction(src: File): Action {
+        val result: Action = mapper.readValue(src)
+        if (result.name == null) {
+            result.name = nameFromFile(src)
+        }
+        val okay = result.responses["200"]
+        if (okay != null && okay.name.isNullOrEmpty()) {
+            okay.name = "${result.name}Result"
+
+        }
+        return result
+    }
+
+    fun loadModel(src: File): Model {
+        val schema: ObjectNode = mapper.readValue(src)
+        val name = nameFromFile(src)
+        return Model(name, schema)
+    }
+
+    fun relocateActions(spec: Specification) {
+        spec.services.forEach { service ->
+            service.actions.forEach { action ->
+                for (response in action.responses.values) {
+                    val name = response.name
+                    val schema = response.schema
+                    if (name != null && schema != null) {
+                        val model = Model(name, schema)
+                        response.schema = null
+                        response.model = model.name
+                        service.models.add(model)
+                    }
+                }
+            }
+        }
+    }
+}
