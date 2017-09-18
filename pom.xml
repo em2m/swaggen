@@ -29,6 +29,27 @@
     <name>swaggen-parent</name>
     <version>1.0.0-SNAPSHOT</version>
 
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:em2m/swaggen.git</connection>
+        <developerConnection>scm:git:git@github.com:em2m/swaggen.git</developerConnection>
+        <url>git@github.com:em2m/swaggen.git</url>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>bintray-em2m-maven</id>
+            <url>https://api.bintray.com/maven/em2m/maven/com.em2m.swaggen:swaggen-parent/;publish=1</url>
+        </repository>
+    </distributionManagement>
+
     <modules>
         <module>core</module>
         <module>maven-plugin</module>
@@ -259,18 +280,5 @@
             </releases>
         </repository>
     </repositories>
-
-    <distributionManagement>
-        <repository>
-            <id>elasticm2m-release</id>
-            <name>libs-release</name>
-            <url>http://artifactory.elasticm2m.com:8081/artifactory/libs-release-local</url>
-        </repository>
-        <snapshotRepository>
-            <id>elasticm2m-snapshot</id>
-            <name>libs-snapshot</name>
-            <url>http://artifactory.elasticm2m.com:8081/artifactory/libs-snapshot-local</url>
-        </snapshotRepository>
-    </distributionManagement>
 
 </project>
