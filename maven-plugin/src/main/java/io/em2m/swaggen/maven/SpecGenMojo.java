@@ -21,7 +21,7 @@ public class SpecGenMojo extends AbstractMojo {
     /**
      * Location of the output directory.
      */
-    @Parameter(name = "outputDir", defaultValue = "${project.build.directory}/classes")
+    @Parameter(name = "outputDir", defaultValue = "${project.build.directory}/classes/${project.groupId}/${project.artifactId}")
     private File outputDir;
 
     /**
