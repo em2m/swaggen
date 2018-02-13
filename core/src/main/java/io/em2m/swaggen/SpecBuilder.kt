@@ -14,12 +14,23 @@ class SpecBuilder(private val sourceDir: File, private val outputDir: File, priv
 
     val mapper: ObjectMapper = ObjectMapper().registerKotlinModule().enable(SerializationFeature.INDENT_OUTPUT)
 
-    fun writeSpec(spec: Specification, genRoot: File, name: String) {
+    private fun writeSwagger(spec: Specification, genRoot: File, name: String) {
         val ymlWriter = FileWriter(File(genRoot, "$name.yml"))
         val jsonWriter = FileWriter(File(genRoot, "$name.json"))
         val swagger = SwaggerFormatter().toSwagger(spec)
         mapper.writeValue(jsonWriter, swagger)
         YAMLFactory(mapper).createGenerator(ymlWriter).writeTree(swagger)
+        ymlWriter.close()
+        jsonWriter.close()
+    }
+
+    private fun writeSpec(spec: Specification, genRoot: File, name: String) {
+        val ymlWriter = FileWriter(File(genRoot, "$name.yml"))
+        val jsonWriter = FileWriter(File(genRoot, "$name.json"))
+        mapper.writeValue(jsonWriter, spec)
+        YAMLFactory(mapper).createGenerator(ymlWriter).writeTree(mapper.valueToTree(spec))
+        ymlWriter.close()
+        jsonWriter.close()
     }
 
     fun build() {
@@ -49,9 +60,10 @@ class SpecBuilder(private val sourceDir: File, private val outputDir: File, priv
 
         println("Loaded spec")
 
-        writeSpec(spec, outputDir, "specification_docs")
+        writeSwagger(spec, outputDir, "swagger_docs")
         loader.relocateActions(spec)
-        writeSpec(spec, outputDir, "specification_code")
+        writeSwagger(spec, outputDir, "swagger_code")
+        writeSpec(spec, outputDir, "specification")
     }
 
 
