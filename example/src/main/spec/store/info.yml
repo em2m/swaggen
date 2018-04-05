@@ -1,1 +1,4 @@
 title: "Swaggen Petstore"
+profiles:
+  - mobile
+  - web

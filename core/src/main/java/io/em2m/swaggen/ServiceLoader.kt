@@ -12,7 +12,7 @@ fun nameFromFile(file: File): String {
     return name.substring(0, name.lastIndexOf('.'))
 }
 
-class ServiceLoader {
+class ServiceLoader() {
 
     val mapper = ObjectMapper(YAMLFactory()).registerKotlinModule()
 
@@ -35,13 +35,20 @@ class ServiceLoader {
         }
     }
 
-
     fun loadService(src: File): Service {
 
-        val service = Service(src.name, mutableListOf(), mutableListOf())
+        val service = Service(src.name, Info(), mutableListOf(), mutableListOf())
 
         val actions = File(src, "actions")
         val models = File(src, "models")
+        val infoYml = File(src, "info.yml")
+        val infoJson = File(src, "info.json")
+
+        if (infoYml.isFile) {
+            service.info = loadInfo(infoYml)
+        } else if (infoJson.isFile) {
+            service.info = loadInfo(infoJson)
+        }
 
         if (actions.isDirectory) {
             actions.listFiles().forEach {
@@ -55,11 +62,10 @@ class ServiceLoader {
         }
 
         if (models.isDirectory) {
-            models.listFiles().forEach {
-                file ->
+            models.listFiles().forEach { file ->
                 val model = try {
                     loadModel(file)
-                } catch(e: Exception) {
+                } catch (e: Exception) {
                     println("Error loading model (${file.name}): ${e.message}")
                     throw e
                 }
@@ -77,7 +83,6 @@ class ServiceLoader {
         val okay = result.responses["200"]
         if (okay != null && okay.name.isNullOrEmpty()) {
             okay.name = "${result.name}Result"
-
         }
         return result
     }
@@ -86,6 +91,30 @@ class ServiceLoader {
         val schema: ObjectNode = mapper.readValue(src)
         val name = nameFromFile(src)
         return Model(name, schema)
+    }
+
+    fun filterProfiles(spec: Specification, profiles: Set<String>): Specification {
+        return if (profiles.isNotEmpty()) {
+            val services = spec.services.filter { it.info.hasProfile(profiles) }.map { service ->
+                val info = service.info
+                val actions = service.actions
+                val models = service.models
+                Service(service.name, info, actions, models)
+            }.toMutableList()
+            Specification(spec.info, services, spec.tags)
+        } else spec
+    }
+
+    fun filterServices(spec: Specification, services: Set<String>): Specification {
+        return if (services.isNotEmpty()) {
+            val services = spec.services.filter { services.contains(it.name) }.map { service ->
+                val info = service.info
+                val actions = service.actions
+                val models = service.models
+                Service(service.name, info, actions, models)
+            }.toMutableList()
+            Specification(spec.info, services, spec.tags)
+        } else spec
     }
 
     fun relocateActions(spec: Specification) {
