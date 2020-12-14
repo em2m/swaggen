@@ -13,19 +13,16 @@ class SwaggerFormatter {
         val result = mapper.createObjectNode()
         result.put("swagger", "2.0")
         result.putPOJO("tags", spec.tags)
-        result.set("info", toSwagger(spec.info))
+        result.set<ObjectNode>("info", toSwagger(spec.info))
         val paths = result.with("paths")
         val definitions = result.with("definitions")
-        spec.services.forEach {
-            service ->
-            service.actions.forEach {
-                action ->
+        spec.services.forEach { service ->
+            service.actions.forEach { action ->
                 val path = "/" + service.name + "/actions/" + action.name
-                paths.set(path, toSwagger(service, action))
+                paths.set<ObjectNode>(path, toSwagger(service, action))
             }
-            service.models.forEach {
-                model ->
-                definitions.set(model.name, toSwagger(model))
+            service.models.forEach { model ->
+                definitions.set<ObjectNode>(model.name, toSwagger(model))
             }
         }
         return result
@@ -56,7 +53,7 @@ class SwaggerFormatter {
         body.put("name", action.name + "Request")
         body.put("required", true)
         if (action.request.schema != null) {
-            body.set("schema", action.request.schema)
+            body.set<ObjectNode>("schema", action.request.schema)
         }
         if (action.request.model != null) {
             body.with("schema").put("\$ref", "#/definitions/" + action.request.model)
@@ -66,7 +63,7 @@ class SwaggerFormatter {
         // Response Parameters
         val responses = post.with("responses")
         for ((key, response) in action.responses) {
-            responses.set(key, toSwagger(response))
+            responses.set<ObjectNode>(key, toSwagger(response))
         }
         return result
     }
@@ -74,12 +71,9 @@ class SwaggerFormatter {
     fun toSwagger(response: Response): ObjectNode {
         val result = mapper.createObjectNode()
         result.put("description", response.description)
-        if (response.name != null) {
-            result.put("name", response.name)
-        }
-        if (response.schema != null) {
-            result.set("schema", response.schema)
-        }
+        response.name?.let { result.put("name", it) }
+        response.schema?.also { result.set<ObjectNode>("schema", it)  }
+
         if (response.model != null) {
             println("response.model.name: ${response.model}")
             result.with("schema").put("\$ref", "#/definitions/" + response.model)

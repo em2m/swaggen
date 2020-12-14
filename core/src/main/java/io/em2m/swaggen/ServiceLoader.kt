@@ -80,6 +80,9 @@ class ServiceLoader() {
         if (result.name == null) {
             result.name = nameFromFile(src)
         }
+        if (result.response != null) {
+            result.responses += "200" to result.response
+        }
         val okay = result.responses["200"]
         if (okay != null && okay.name.isNullOrEmpty()) {
             okay.name = "${result.name}Result"

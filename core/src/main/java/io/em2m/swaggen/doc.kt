@@ -6,7 +6,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-data class Info(var title: String? = null, var description: String = "", var version: String? = null, var profiles: List<String> = emptyList()) {
+data class Info(
+    var title: String? = null,
+    var description: String = "",
+    var version: String? = null,
+    var profiles: List<String> = emptyList()
+) {
 
     fun hasProfile(profiles: Set<String>): Boolean {
         var matches = false
@@ -21,14 +26,37 @@ data class Info(var title: String? = null, var description: String = "", var ver
 
 }
 
-data class Specification(var info: Info, var services: MutableList<Service> = mutableListOf(), val tags: MutableList<Map<String, Any>> = mutableListOf())
+data class Specification(
+    var info: Info,
+    var services: MutableList<Service> = mutableListOf(),
+    val tags: MutableList<Map<String, Any>> = mutableListOf()
+)
 
-data class Service(var name: String, var info: Info = Info(), val actions: MutableList<Action>, val models: MutableList<Model>)
+data class Service(
+    var name: String,
+    var info: Info = Info(),
+    val actions: MutableList<Action>,
+    val models: MutableList<Model>
+)
 
-data class Action(var name: String?, var description: String = "", var consumes: String?, var produces: String?, var request: Request, var responses: Map<String, Response>)
+data class Action(
+    var name: String?,
+    var description: String = "",
+    var consumes: String?,
+    var produces: String?,
+    var request: Request,
+    var responses: Map<String, Response> = emptyMap(),
+    val response: Response? = null
+)
 
 data class Model(var name: String, var schema: ObjectNode)
 
 data class Request(var schema: ObjectNode?, var model: String?, var headers: ObjectNode?)
 
-data class Response(var name: String? = "", var description: String? = "", var schema: ObjectNode? = null, var model: String? = null, var headers: ObjectNode?)
+data class Response(
+    var name: String? = "",
+    var description: String? = "",
+    var schema: ObjectNode? = null,
+    var model: String? = null,
+    var headers: ObjectNode?
+)
