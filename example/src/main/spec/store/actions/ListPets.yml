@@ -5,10 +5,6 @@ request:
       petId:
         type: string
         description: The id of the pet to retrieve
-responses:
-  200:
-    description: Expected response to a valid request
-    model: Pets
-  default:
-    description: Unexpected error
-    model: Error
+response:
+  description: Expected response to a valid request
+  model: Pets
